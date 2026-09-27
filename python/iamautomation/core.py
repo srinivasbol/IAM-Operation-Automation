@@ -64,8 +64,12 @@ class IAMAutomationService:
             ),
         }
 
+        operation = operation_map[request.action]
         try:
-            result = run_with_exponential_backoff(operation_map[request.action])
+            if request.action in {Action.MODIFY, Action.DISABLE, Action.ENABLE}:
+                result = run_with_exponential_backoff(operation)
+            else:
+                result = operation()
         except RateLimitError as exc:
             result = OperationResult(
                 status="error",

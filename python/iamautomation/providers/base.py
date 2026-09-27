@@ -145,7 +145,14 @@ class InMemoryDirectoryProvider(DirectoryProvider):
         key = self._key(entity_type, target)
         if key not in self._entities:
             return OperationResult(status="error", message=f"{target} not found", changed=False)
-        secret_length = int(attributes.get("secret_length", 40))
+        try:
+            secret_length = int(attributes.get("secret_length", 40))
+        except (TypeError, ValueError):
+            return OperationResult(
+                status="error",
+                message="secret_length must be a positive integer",
+                changed=False,
+            )
         if secret_length <= 0:
             return OperationResult(
                 status="error",

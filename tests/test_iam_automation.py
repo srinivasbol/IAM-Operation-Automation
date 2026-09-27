@@ -159,6 +159,31 @@ class TestIAMAutomationService(unittest.TestCase):
         result = self.service.execute(reset)
         self.assertEqual("error", result.status)
 
+    def test_reset_secret_rejects_non_numeric_length(self):
+        create = IAMRequest(
+            action=Action.CREATE,
+            entity_type=EntityType.NON_HUMAN_IDENTITY,
+            target="svc-app-06",
+            provider="mock",
+            caller="tester",
+            ticket_id="INC-6",
+            dry_run=False,
+            attributes={},
+        )
+        self.service.execute(create)
+        reset = IAMRequest(
+            action=Action.RESET_SECRET,
+            entity_type=EntityType.NON_HUMAN_IDENTITY,
+            target="svc-app-06",
+            provider="mock",
+            caller="tester",
+            ticket_id="INC-6",
+            dry_run=False,
+            attributes={"secret_length": "abc"},
+        )
+        result = self.service.execute(reset)
+        self.assertEqual("error", result.status)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -77,6 +77,10 @@ function Invoke-IamRequest {
         Write-JsonAuditLog -Caller $Caller -Target $normalizedTarget -Action $Action -Status 'planned' -TicketId $TicketId -Provider $Provider -Details @{ plannedChanges = $Attributes; entityType = $EntityType }
         return [pscustomobject]@{ status = 'planned'; message = 'dry-run completed'; changed = $false; data = @{ target = $normalizedTarget; provider = $Provider } }
     }
+    if (-not $PSCmdlet.ShouldProcess($normalizedTarget, "$Action $EntityType")) {
+        Write-JsonAuditLog -Caller $Caller -Target $normalizedTarget -Action $Action -Status 'planned' -TicketId $TicketId -Provider $Provider -Details @{ message = 'ShouldProcess declined execution' }
+        return [pscustomobject]@{ status = 'planned'; message = 'execution skipped'; changed = $false; data = @{ target = $normalizedTarget; provider = $Provider } }
+    }
 
     $operation = {
         switch ($Action) {
@@ -99,7 +103,12 @@ function Invoke-IamRequest {
             'reset-secret' {
                 $secretLength = 40
                 if ($Attributes.ContainsKey('secret_length') -and $Attributes.secret_length) {
-                    $secretLength = [int]$Attributes.secret_length
+                    try {
+                        $secretLength = [int]$Attributes.secret_length
+                    }
+                    catch {
+                        throw "secret_length must be a positive integer"
+                    }
                 }
                 if ($secretLength -le 0) {
                     throw "secret_length must be a positive integer"
@@ -110,7 +119,12 @@ function Invoke-IamRequest {
         }
     }
 
-    $result = Invoke-Backoff -Operation $operation
+    if ($Action -in @('modify', 'disable', 'enable')) {
+        $result = Invoke-Backoff -Operation $operation
+    }
+    else {
+        $result = & $operation
+    }
     Write-JsonAuditLog -Caller $Caller -Target $normalizedTarget -Action $Action -Status $result.status -TicketId $TicketId -Provider $Provider -Details @{ message = $result.message; changed = $result.changed }
     return $result
 }
