@@ -37,7 +37,7 @@ python -m python.iamautomation.cli \
 pwsh ./powershell/invoke-iam.ps1 -Action disable -EntityType privileged-account -Target bg-admin-01 -TicketId INC-1010 -Attributes "quarantine_ou=OU=Quarantine" -DryRun
 ```
 
-- `powershell/IamAutomation.psm1` exposes `Invoke-IamRequest` with mandatory `-DryRun`
+- `powershell/IamAutomation.psm1` exposes `Invoke-IamRequest` with mandatory run mode (`-DryRun` or `-Execute`)
 - Uses modular functions for secure secret generation, exponential backoff, and structured JSON audit logs
 - Designed for extension with `Microsoft.Graph` and `ActiveDirectory` cmdlets in provider-specific logic blocks
 

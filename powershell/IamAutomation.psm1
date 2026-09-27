@@ -60,7 +60,8 @@ function Invoke-IamRequest {
         [Parameter(Mandatory)][ValidateSet('create','modify','disable','enable','reset-secret')][string]$Action,
         [Parameter(Mandatory)][ValidateSet('privileged-account','non-human-identity','security-group')][string]$EntityType,
         [Parameter(Mandatory)][string]$Target,
-        [Parameter(Mandatory)][switch]$DryRun,
+        [Parameter(Mandatory, ParameterSetName='DryRun')][switch]$DryRun,
+        [Parameter(Mandatory, ParameterSetName='Execute')][switch]$Execute,
         [string]$Provider = "graph",
         [string]$Caller = "automation-runner",
         [string]$TicketId = "UNKNOWN",
@@ -83,7 +84,11 @@ function Invoke-IamRequest {
                 return [pscustomobject]@{ status='success'; message='modified'; changed=$true; data=@{ target=$normalizedTarget; attributes=$Attributes } }
             }
             'disable' {
-                return [pscustomobject]@{ status='success'; message='disabled'; changed=$true; data=@{ target=$normalizedTarget; quarantineOU=($Attributes.quarantine_ou ?? 'OU=Quarantine') } }
+                $quarantineOu = 'OU=Quarantine'
+                if ($Attributes.ContainsKey('quarantine_ou') -and $Attributes.quarantine_ou) {
+                    $quarantineOu = [string]$Attributes.quarantine_ou
+                }
+                return [pscustomobject]@{ status='success'; message='disabled'; changed=$true; data=@{ target=$normalizedTarget; quarantineOU=$quarantineOu } }
             }
             'enable' {
                 return [pscustomobject]@{ status='success'; message='enabled'; changed=$true; data=@{ target=$normalizedTarget; mfaRequired=$true; secretRotationRequired=$true } }

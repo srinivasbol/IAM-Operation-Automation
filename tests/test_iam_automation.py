@@ -1,7 +1,7 @@
 import unittest
 
 from python.iamautomation.core import IAMAutomationService
-from python.iamautomation.models import Action, EntityType, IAMRequest
+from python.iamautomation.models import Action, EntityType, IAMRequest, OperationResult
 from python.iamautomation.providers.base import InMemoryDirectoryProvider
 
 
@@ -91,6 +91,26 @@ class TestIAMAutomationService(unittest.TestCase):
         self.assertEqual("success", reset_result.status)
         self.assertTrue(reset_result.data["mustChangePasswordAtNextLogon"])
         self.assertEqual(48, len(reset_result.data["secret"]))
+
+    def test_validation_failure_is_returned(self):
+        class DenyProvider(InMemoryDirectoryProvider):
+            def validate_access(self, entity_type, target):
+                return OperationResult(status="error", message="access denied", changed=False)
+
+        service = IAMAutomationService(DenyProvider())
+        request = IAMRequest(
+            action=Action.CREATE,
+            entity_type=EntityType.PRIVILEGED_ACCOUNT,
+            target="bg-admin-03",
+            provider="mock",
+            caller="tester",
+            ticket_id="INC-4",
+            dry_run=False,
+            attributes={},
+        )
+        result = service.execute(request)
+        self.assertEqual("error", result.status)
+        self.assertEqual("access denied", result.message)
 
 
 if __name__ == "__main__":

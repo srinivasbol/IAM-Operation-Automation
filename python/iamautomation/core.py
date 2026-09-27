@@ -27,6 +27,7 @@ class IAMAutomationService:
         )
         access = self.provider.validate_access(request.entity_type, target)
         if access.status not in {"ok", "success", "noop"}:
+            self._audit(request, access, target)
             return access
 
         if request.dry_run:

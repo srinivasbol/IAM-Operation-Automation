@@ -3,7 +3,8 @@ param(
     [Parameter(Mandatory)][ValidateSet('create','modify','disable','enable','reset-secret')][string]$Action,
     [Parameter(Mandatory)][ValidateSet('privileged-account','non-human-identity','security-group')][string]$EntityType,
     [Parameter(Mandatory)][string]$Target,
-    [Parameter(Mandatory)][switch]$DryRun,
+    [Parameter(Mandatory, ParameterSetName='DryRun')][switch]$DryRun,
+    [Parameter(Mandatory, ParameterSetName='Execute')][switch]$Execute,
     [string]$Provider = $env:IAM_PROVIDER,
     [string]$Caller = $(if ($env:IAM_CALLER) { $env:IAM_CALLER } else { 'automation-runner' }),
     [string]$TicketId = $(if ($env:IAM_TICKET_ID) { $env:IAM_TICKET_ID } else { 'UNKNOWN' }),
@@ -22,5 +23,10 @@ if ($Attributes) {
     }
 }
 
-$result = Invoke-IamRequest -Action $Action -EntityType $EntityType -Target $Target -DryRun:$DryRun -Provider $Provider -Caller $Caller -TicketId $TicketId -Attributes $attrMap
+if ($DryRun) {
+    $result = Invoke-IamRequest -Action $Action -EntityType $EntityType -Target $Target -DryRun -Provider $Provider -Caller $Caller -TicketId $TicketId -Attributes $attrMap
+}
+else {
+    $result = Invoke-IamRequest -Action $Action -EntityType $EntityType -Target $Target -Execute -Provider $Provider -Caller $Caller -TicketId $TicketId -Attributes $attrMap
+}
 $result | ConvertTo-Json -Depth 5 -Compress | Write-Output

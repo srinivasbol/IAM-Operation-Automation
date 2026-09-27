@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+import importlib
 from secrets import token_urlsafe
 from typing import Any, Dict, Optional
 
@@ -160,6 +161,6 @@ class InMemoryDirectoryProvider(DirectoryProvider):
 
 def safe_import(module_name: str) -> Optional[object]:
     try:
-        return __import__(module_name)
+        return importlib.import_module(module_name)
     except Exception:
         return None
