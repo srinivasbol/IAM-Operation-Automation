@@ -101,6 +101,9 @@ function Invoke-IamRequest {
                 if ($Attributes.ContainsKey('secret_length') -and $Attributes.secret_length) {
                     $secretLength = [int]$Attributes.secret_length
                 }
+                if ($secretLength -le 0) {
+                    throw "secret_length must be a positive integer"
+                }
                 $secret = New-SecureSecret -Length $secretLength
                 return [pscustomobject]@{ status='success'; message='secret reset'; changed=$true; data=@{ target=$normalizedTarget; secret=$secret; mustChangePasswordAtNextLogon=$true } }
             }

@@ -134,6 +134,31 @@ class TestIAMAutomationService(unittest.TestCase):
         with self.assertRaises(RateLimitError):
             run_with_exponential_backoff(always_fails, attempts=2, base_delay=0, max_delay=0)
 
+    def test_reset_secret_rejects_non_positive_length(self):
+        create = IAMRequest(
+            action=Action.CREATE,
+            entity_type=EntityType.NON_HUMAN_IDENTITY,
+            target="svc-app-04",
+            provider="mock",
+            caller="tester",
+            ticket_id="INC-5",
+            dry_run=False,
+            attributes={},
+        )
+        self.service.execute(create)
+        reset = IAMRequest(
+            action=Action.RESET_SECRET,
+            entity_type=EntityType.NON_HUMAN_IDENTITY,
+            target="svc-app-04",
+            provider="mock",
+            caller="tester",
+            ticket_id="INC-5",
+            dry_run=False,
+            attributes={"secret_length": "0"},
+        )
+        result = self.service.execute(reset)
+        self.assertEqual("error", result.status)
+
 
 if __name__ == "__main__":
     unittest.main()

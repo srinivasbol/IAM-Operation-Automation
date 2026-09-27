@@ -27,7 +27,7 @@ python -m python.iamautomation.cli \
 ### Architecture
 
 - `python/iamautomation/core.py`: idempotent request orchestration, naming policy, and audit event emission
-- `python/iamautomation/providers/*`: provider adapters (`ldap3`, `msal`, `azure-identity` hooks) isolated from business logic
+- `python/iamautomation/providers/*`: provider adapters (`ldap3`, `msal`, `azure-identity` package via `azure.identity` module hooks) isolated from business logic
 - `python/iamautomation/retry.py`: exponential backoff for 429/rate-limit resilience
 - Structured JSON audit logs include timestamp, caller identity, target entity, action, status, provider, and ticket ID
 
