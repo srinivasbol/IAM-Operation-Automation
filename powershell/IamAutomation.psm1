@@ -27,10 +27,13 @@ function Write-JsonAuditLog {
 
 function New-SecureSecret {
     param([int]$Length = 40)
-    $bytes = New-Object byte[] ($Length)
-    [System.Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
-    $value = [Convert]::ToBase64String($bytes).TrimEnd('=')
-    return $value.Substring(0, [Math]::Min($Length, $value.Length))
+    $value = ''
+    while ($value.Length -lt $Length) {
+        $bytes = New-Object byte[] ($Length)
+        [System.Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+        $value += [Convert]::ToBase64String($bytes).TrimEnd('=')
+    }
+    return $value.Substring(0, $Length)
 }
 
 function Invoke-Backoff {

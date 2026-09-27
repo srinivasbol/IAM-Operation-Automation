@@ -6,7 +6,7 @@ from typing import Callable, Dict
 from .logger import build_logger
 from .models import Action, AuditEvent, IAMRequest, OperationResult
 from .providers.base import DirectoryProvider
-from .retry import run_with_exponential_backoff
+from .retry import RateLimitError, run_with_exponential_backoff
 
 
 class IAMAutomationService:
@@ -64,7 +64,14 @@ class IAMAutomationService:
             ),
         }
 
-        result = run_with_exponential_backoff(operation_map[request.action])
+        try:
+            result = run_with_exponential_backoff(operation_map[request.action])
+        except RateLimitError as exc:
+            result = OperationResult(
+                status="error",
+                message=f"rate limit exceeded: {exc}",
+                changed=False,
+            )
         self._audit(request, result, target)
         return result
 

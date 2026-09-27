@@ -83,7 +83,7 @@ class TestIAMAutomationService(unittest.TestCase):
             caller="tester",
             ticket_id="INC-3",
             dry_run=False,
-            attributes={"secret_length": 48},
+            attributes={"secret_length": "48"},
         )
 
         self.assertEqual("success", self.service.execute(disable).status)

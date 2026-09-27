@@ -145,7 +145,8 @@ class InMemoryDirectoryProvider(DirectoryProvider):
         key = self._key(entity_type, target)
         if key not in self._entities:
             return OperationResult(status="error", message=f"{target} not found", changed=False)
-        secret = self.generate_secret(attributes.get("secret_length", 40))
+        secret_length = int(attributes.get("secret_length", 40))
+        secret = self.generate_secret(secret_length)
         current = self._entities[key]
         current.update(
             {
