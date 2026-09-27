@@ -91,7 +91,8 @@ class TestIAMAutomationService(unittest.TestCase):
         reset_result = self.service.execute(reset)
         self.assertEqual("success", reset_result.status)
         self.assertTrue(reset_result.data["mustChangePasswordAtNextLogon"])
-        self.assertEqual(48, len(reset_result.data["secret"]))
+        self.assertTrue(reset_result.data["secretRedacted"])
+        self.assertTrue(reset_result.data["secureDeliveryRequired"])
 
     def test_validation_failure_is_returned(self):
         class DenyProvider(InMemoryDirectoryProvider):

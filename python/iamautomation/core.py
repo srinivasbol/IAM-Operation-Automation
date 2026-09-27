@@ -22,9 +22,12 @@ class IAMAutomationService:
         return normalized
 
     def execute(self, request: IAMRequest) -> OperationResult:
-        target = self.normalize_name(
-            request.action, request.target, request.attributes.get("name_prefix")
-        )
+        if request.action == Action.CREATE:
+            target = self.normalize_name(
+                request.action, request.target, request.attributes.get("name_prefix")
+            )
+        else:
+            target = request.target.strip()
         access = self.provider.validate_access(request.entity_type, target)
         if access.status not in {"ok", "success", "noop"}:
             self._audit(request, access, target)
@@ -66,7 +69,7 @@ class IAMAutomationService:
 
         operation = operation_map[request.action]
         try:
-            if request.action in {Action.MODIFY, Action.DISABLE, Action.ENABLE}:
+            if request.action == Action.MODIFY:
                 result = run_with_exponential_backoff(operation)
             else:
                 result = operation()

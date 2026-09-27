@@ -159,20 +159,24 @@ class InMemoryDirectoryProvider(DirectoryProvider):
                 message="secret_length must be a positive integer",
                 changed=False,
             )
-        secret = self.generate_secret(secret_length)
+        _ = self.generate_secret(secret_length)
         current = self._entities[key]
         current.update(
             {
                 "mustChangePasswordAtNextLogon": True,
                 "secretRotationRequired": True,
-                "secret": secret,
+                "secretSet": True,
             }
         )
         return OperationResult(
             status="success",
             message="secret reset",
             changed=True,
-            data={"secret": secret, "mustChangePasswordAtNextLogon": True},
+            data={
+                "secretRedacted": True,
+                "secureDeliveryRequired": True,
+                "mustChangePasswordAtNextLogon": True,
+            },
         )
 
 

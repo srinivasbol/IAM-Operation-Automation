@@ -113,13 +113,13 @@ function Invoke-IamRequest {
                 if ($secretLength -le 0) {
                     throw "secret_length must be a positive integer"
                 }
-                $secret = New-SecureSecret -Length $secretLength
-                return [pscustomobject]@{ status='success'; message='secret reset'; changed=$true; data=@{ target=$normalizedTarget; secret=$secret; mustChangePasswordAtNextLogon=$true } }
+                $null = New-SecureSecret -Length $secretLength
+                return [pscustomobject]@{ status='success'; message='secret reset'; changed=$true; data=@{ target=$normalizedTarget; secretRedacted=$true; secureDeliveryRequired=$true; mustChangePasswordAtNextLogon=$true } }
             }
         }
     }
 
-    if ($Action -in @('modify', 'disable', 'enable')) {
+    if ($Action -eq 'modify') {
         $result = Invoke-Backoff -Operation $operation
     }
     else {

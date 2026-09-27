@@ -26,10 +26,11 @@ python -m python.iamautomation.cli \
 
 ### Architecture
 
-- `python/iamautomation/core.py`: idempotent request orchestration, naming policy, and audit event emission
+- `python/iamautomation/core.py`: request orchestration, create-time naming policy enforcement, and audit event emission
 - `python/iamautomation/providers/*`: provider adapters (`ldap3`, `msal`, `azure-identity` package via `azure.identity` module hooks) isolated from business logic
-- `python/iamautomation/retry.py`: exponential backoff for 429/rate-limit resilience
+- `python/iamautomation/retry.py`: exponential backoff helper for retry-safe operations (currently `modify`)
 - Structured JSON audit logs include timestamp, caller identity, target entity, action, status, provider, and ticket ID
+- Secret reset responses are redacted and flagged for secure out-of-band delivery
 
 ## PowerShell module
 
@@ -38,7 +39,7 @@ pwsh ./powershell/invoke-iam.ps1 -Action disable -EntityType privileged-account 
 ```
 
 - `powershell/IamAutomation.psm1` exposes `Invoke-IamRequest` with mandatory run mode (`-DryRun` or `-Execute`)
-- Uses modular functions for secure secret generation, exponential backoff, and structured JSON audit logs
+- Uses modular functions for secure secret generation, retry-safe backoff, and structured JSON audit logs
 - Designed for extension with `Microsoft.Graph` and `ActiveDirectory` cmdlets in provider-specific logic blocks
 
 ## Tests
