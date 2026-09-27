@@ -17,9 +17,10 @@ $attrMap = @{}
 if ($Attributes) {
     foreach ($entry in $Attributes.Split(',')) {
         $parts = $entry.Split('=', 2)
-        if ($parts.Count -eq 2) {
-            $attrMap[$parts[0].Trim()] = $parts[1].Trim()
+        if ($parts.Count -ne 2 -or [string]::IsNullOrWhiteSpace($parts[0])) {
+            throw "Invalid attribute entry: $entry"
         }
+        $attrMap[$parts[0].Trim()] = $parts[1].Trim()
     }
 }
 

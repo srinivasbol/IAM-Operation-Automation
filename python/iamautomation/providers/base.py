@@ -5,7 +5,7 @@ import importlib
 from secrets import token_urlsafe
 from typing import Any, Dict, Optional
 
-from ..models import EntityType, OperationResult
+from ..models import Action, EntityType, OperationResult
 
 
 class DirectoryProvider(ABC):
@@ -44,6 +44,9 @@ class DirectoryProvider(ABC):
         self, entity_type: EntityType, target: str, attributes: Dict[str, Any]
     ) -> OperationResult:
         raise NotImplementedError
+
+    def is_retry_safe(self, action: Action) -> bool:
+        return action == Action.MODIFY
 
     def generate_secret(self, length: int = 40) -> str:
         secret = ""

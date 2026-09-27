@@ -55,6 +55,30 @@ function Invoke-Backoff {
             Start-Sleep -Seconds ([Math]::Min(16, [Math]::Pow(2, $attempt - 1) * $BaseDelaySeconds))
         }
     }
+
+    function Test-RetrySafeAction {
+        param(
+            [string]$Provider,
+            [string]$Action,
+            [hashtable]$Attributes
+        )
+
+        if ($Attributes.ContainsKey('retry_safe')) {
+            return [System.Convert]::ToBoolean($Attributes.retry_safe)
+        }
+
+        $retrySafeByProvider = @{
+            "default" = @('modify')
+            "graph"   = @('modify')
+            "ad"      = @('modify')
+            "linux"   = @('modify')
+        }
+        $key = $Provider.ToLowerInvariant()
+        if (-not $retrySafeByProvider.ContainsKey($key)) {
+            $key = "default"
+        }
+        return $retrySafeByProvider[$key] -contains $Action
+    }
 }
 
 function Invoke-IamRequest {
@@ -119,7 +143,7 @@ function Invoke-IamRequest {
         }
     }
 
-    if ($Action -eq 'modify') {
+    if (Test-RetrySafeAction -Provider $Provider -Action $Action -Attributes $Attributes) {
         $result = Invoke-Backoff -Operation $operation
     }
     else {

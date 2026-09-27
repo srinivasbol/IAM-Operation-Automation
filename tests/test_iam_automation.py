@@ -25,6 +25,7 @@ class TestIAMAutomationService(unittest.TestCase):
         result = self.service.execute(request)
         self.assertEqual("planned", result.status)
         self.assertFalse(result.changed)
+        self.assertEqual("svc-app-01", result.data["target"])
 
     def test_create_is_idempotent(self):
         create = IAMRequest(
