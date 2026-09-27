@@ -3,6 +3,7 @@ import unittest
 from python.iamautomation.core import IAMAutomationService
 from python.iamautomation.models import Action, EntityType, IAMRequest, OperationResult
 from python.iamautomation.providers.base import InMemoryDirectoryProvider
+from python.iamautomation.retry import RateLimitError, run_with_exponential_backoff
 
 
 class TestIAMAutomationService(unittest.TestCase):
@@ -111,6 +112,27 @@ class TestIAMAutomationService(unittest.TestCase):
         result = service.execute(request)
         self.assertEqual("error", result.status)
         self.assertEqual("access denied", result.message)
+
+    def test_exponential_backoff_retries_and_fails(self):
+        attempts = {"count": 0}
+
+        def eventually_succeeds():
+            attempts["count"] += 1
+            if attempts["count"] < 3:
+                raise RateLimitError("429")
+            return "ok"
+
+        result = run_with_exponential_backoff(
+            eventually_succeeds, attempts=3, base_delay=0, max_delay=0
+        )
+        self.assertEqual("ok", result)
+        self.assertEqual(3, attempts["count"])
+
+        def always_fails():
+            raise RateLimitError("429")
+
+        with self.assertRaises(RateLimitError):
+            run_with_exponential_backoff(always_fails, attempts=2, base_delay=0, max_delay=0)
 
 
 if __name__ == "__main__":

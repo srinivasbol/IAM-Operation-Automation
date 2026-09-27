@@ -46,7 +46,10 @@ class DirectoryProvider(ABC):
         raise NotImplementedError
 
     def generate_secret(self, length: int = 40) -> str:
-        return token_urlsafe(length)[:length]
+        secret = ""
+        while len(secret) < length:
+            secret += token_urlsafe(length)
+        return secret[:length]
 
 
 class InMemoryDirectoryProvider(DirectoryProvider):

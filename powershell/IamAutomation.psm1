@@ -68,7 +68,7 @@ function Invoke-IamRequest {
         [hashtable]$Attributes = @{}
     )
 
-    $normalizedTarget = $Target.ToLowerInvariant().Replace(' ', '-')
+    $normalizedTarget = ([regex]::Replace($Target.ToLowerInvariant().Trim(), '[^a-z0-9-]', '-'))
 
     if ($DryRun) {
         Write-JsonAuditLog -Caller $Caller -Target $normalizedTarget -Action $Action -Status 'planned' -TicketId $TicketId -Provider $Provider -Details @{ plannedChanges = $Attributes; entityType = $EntityType }
@@ -94,7 +94,11 @@ function Invoke-IamRequest {
                 return [pscustomobject]@{ status='success'; message='enabled'; changed=$true; data=@{ target=$normalizedTarget; mfaRequired=$true; secretRotationRequired=$true } }
             }
             'reset-secret' {
-                $secret = New-SecureSecret -Length 40
+                $secretLength = 40
+                if ($Attributes.ContainsKey('secret_length') -and $Attributes.secret_length) {
+                    $secretLength = [int]$Attributes.secret_length
+                }
+                $secret = New-SecureSecret -Length $secretLength
                 return [pscustomobject]@{ status='success'; message='secret reset'; changed=$true; data=@{ target=$normalizedTarget; secret=$secret; mustChangePasswordAtNextLogon=$true } }
             }
         }
